@@ -1,0 +1,38 @@
+#install.packages("lpSolve")
+library(lpSolve)
+
+MinQty = 21 #count of min quantity contraint
+MaxQty = 21 #count of max quantity contraint
+ContCapLBSLB = 140 #count of container capacity lowerbound weight constaint
+ContCapLBSUB = 140 #count of container capacity upperbound weight constaint
+ContCapPalletLB = 140 #count of container capacity lowerbound pallet constaint
+ContCapPalletUB = 140 #count of container capacity upperbound pallet constaint
+
+#ObjectiveFunction, RHS, and Constraint Matrix from WF
+
+ObjectiveFunction = as.matrix(read.csv2("Inputs/Container Optimization Model Inputs - OF.csv", header=TRUE))
+class(ObjectiveFunction) = "numeric"
+ObjectiveFunction = ObjectiveFunction[,1]
+
+RHS = as.matrix(read.csv2("Inputs/Container Optimization Model Inputs - RHS.csv", header=TRUE))
+class(RHS)="numeric"
+RHS = RHS[,1]
+
+ConstraintMatrix = as.matrix(read.csv2("Inputs/Container Optimization Model Inputs - CM.csv", header=TRUE, sep=","))
+class(ConstraintMatrix) = "numeric"
+
+
+#Constraint symbols
+Signs = c(rep(">=",MinQty),rep("<=",MaxQty), 
+          rep(">=",ContCapLBSLB),rep("<=",ContCapLBSUB),
+          rep(">=",ContCapPalletLB),rep("<=",ContCapPalletUB))
+
+
+#LP function whic maximizes savings
+MaxSavings = lp("max",ObjectiveFunction,ConstraintMatrix,Signs,RHS,all.int=TRUE)
+
+MaxSavings #value of optimal solution
+MaxSavings$solution #values of decision variable (order quantity)
+
+write.csv(MaxSavings$solution, file = "Results/R Results.csv")
+
